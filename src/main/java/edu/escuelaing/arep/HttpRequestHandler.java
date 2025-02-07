@@ -40,7 +40,6 @@ public class HttpRequestHandler {
                 method = inputLine.split(" ")[0];
                 isFirstLine = false; 
             }
-            System.out.println("Received: " + inputLine);
             if (!in.ready()) {
                 break;
             }
@@ -107,6 +106,14 @@ public class HttpRequestHandler {
 
     public byte[] readFileData(String requestFile) throws IOException {
         File file = new File(requestFile);
+
+        if (file.isDirectory()) {
+            throw new FileNotFoundException("La ruta solicitada es un directorio, no un archivo: " + requestFile);
+        }
+        if (!fileExists(requestFile)) {
+            throw new FileNotFoundException("Archivo no encontrado: " + requestFile);
+        }
+        
         int fileLength = (int) file.length();
         FileInputStream fileIn = null;
         byte[] fileData = new byte[fileLength];
@@ -114,11 +121,13 @@ public class HttpRequestHandler {
             fileIn = new FileInputStream(file);
             fileIn.read(fileData);
         } finally {
-            if (fileIn != null)
+            if (fileIn != null) {
                 fileIn.close();
+            }
         }
         return fileData;
     }
+    
 
     public static boolean fileExists(String filePath) {
         Path path = Paths.get(filePath);
