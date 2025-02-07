@@ -1,7 +1,7 @@
 
-# Non-Concurrent Web Server
+# Web Framework for REST Services and Static File Management
 
-In this project, a non-concurrent web server was implemented in Java, capable of serving static files from a specific location and handling REST requests for GET and POST methods.
+This project extends an existing web server into a full-featured framework, enabling REST backend services alongside static file management. It provides tools for defining REST services with lambda functions, handling query parameters, and specifying static file locations, simplifying modern web application development.
 
 
 ## Getting Started
@@ -42,8 +42,8 @@ You need to have the following installed:
    Apache Maven 3.9.9 (8e8579a9e76f7d015ee5ec7bfcdc97d260186937)
    Maven home: /Applications/apache-maven-3.9.9
    Java version: 17.0.12, vendor: Oracle Corporation, runtime: /Library/Java/JavaVirtualMachines/jdk-17.jdk/Contents/Home
-   Default locale: es_CO, platform encoding: UTF-8
-   OS name: "mac os x", version: "12.7.6", arch: "x86_64", family: "mac"
+   Default locale: es: `CO, platform encoding: UTF-8
+   OS name: "mac os x", version: "12.7.6", arch: "x86: `64", family: "mac"
    ```
 
 3. **Git**
@@ -65,8 +65,8 @@ You need to have the following installed:
 1. Clone the repository and navigate to the folder containing the `pom.xml` file using the following commands:
 
    ```sh
-   git clone https://github.com/Mar972310/AREP_WEBSERVER_DISTRIBUTED_APPLICATIONS.git
-   cd AREP_WEBSERVER_DISTRIBUTED_APPLICATIONS
+   git clone https://github.com/Mar972310/AREP: `MICROFRAMEWORKS: `WEB.git
+   cd AREP: `MICROFRAMEWORKS: `WEB
    ```
 
 2. Build the project:
@@ -78,59 +78,101 @@ You need to have the following installed:
    The console output should look something like this:
 
    ```sh
-   [INFO] --- jar:3.4.1:jar (default-jar) @ HttpServer ---
-   [INFO] Building jar: /Users/maritzamonsalvebautista/Downloads/trabajoJueves/AREP_WEBSERVER_DISTRIBUTED_APPLICATIONS/target/HttpServer-1.0-SNAPSHOT.jar
+   [INFO] Building jar: /Users/maritzamonsalvebautista/Downloads/AREP: `MICROFRAMEWORKS: `WEB/target/HttpServer-1.0-SNAPSHOT.jar
    [INFO] ------------------------------------------------------------------------
    [INFO] BUILD SUCCESS
    [INFO] ------------------------------------------------------------------------
-   [INFO] Total time:  6.496 s
-   [INFO] Finished at: 2025-01-30T20:43:00-05:00
+   [INFO] Total time:  7.042 s
+   [INFO] Finished at: 2025-02-06T21:44:52-05:00
    [INFO] ------------------------------------------------------------------------
    ```
 
 3. Run the application:
 
-   ```sh
-   java -cp target/HttpServer-1.0-SNAPSHOT.jar edu.escuelaing.arep.HttpServer
-   ```
+      ```sh
+      java -cp target/HttpServer-1.0-SNAPSHOT.jar edu.escuelaing.arep.WebApplication
+      ```
+      The console should display the following message:
+      ```sh
+      Ready to receive ...
+      ```
+      You can now access static resources like `index.html` or other resources stored in the `resources/static` folder.
 
-   The console should display the following message:
+4. Search in the browser http://localhost:35000/index.html, also http://localhost:35000/imagen1.png
 
-   ```sh
-   Ready to receive ...
-   ```
-
-   You can now access static resources like `index.html` or other resources stored in the `resources` folder.
-
-4. Search in the browser `http://localhost:35000/index.html`, also `http://localhost:35000/imagen1.png`
-
-![index.html](/images/image.png)
-![imagen](/images/image1.png)
+   ![index.html](/images/index.png)
+   ![index.html](/images/index2.png)
+   ![imagen](/images/image.png)
 
 ## Architecture
 
 ![alt text](images/arquitectura.png)
 
-1. **HttpServer**
 
-- **Role**: This is the main class of the server. It initializes a `ServerSocket` on the specified port and listens for incoming client connections. When a connection is received, it creates a new instance of `HttpRequestHandler` and delegates the responsibility of handling the client's request to this class.
-- **Responsibilities**:
-  - Accept incoming client connections.
-  - Delegate the handling of each request to `HttpRequestHandler`.
-  - Manage the server's lifecycle, including startup and shutdown.
 
-  In your implementation, each time a client connects, the server handles it sequentially, meaning that it can only handle one connection at a time instead of using concurrency.
+## 1. **HttpServer**  
 
-2. **HttpRequestHandler**
+### **Role:**  
+Manages the lifecycle of the HTTP server, including handling incoming requests, storing static and dynamic REST endpoints, and routing requests to the appropriate handler.  
 
-- **Role**: This class is responsible for processing individual client requests. It reads and processes the HTTP request, determines what file or resource should be served, and generates the appropriate response.
-- **Responsibilities**:
-  - Read and parse the client's HTTP request.
-  - Serve static files from the specified directory or handle REST-like API requests.
-  - Send appropriate HTTP responses to the client, handling errors like "404 Not Found" when a resource is not found.
-  - Close the client socket after processing the request to avoid resource leaks.
+### **Responsibilities:**  
+- Start and stop the server, listening on a specified port.  
+- Accept incoming client connections and delegate request processing to `HttpRequestHandler`.  
+- Store and manage static file paths for serving resources.  
+- Register and store **GET** and **POST** request handlers using lambda functions.  
+- Route incoming requests to the correct lambda function based on the HTTP method and path.  
 
-  In your implementation, when the server accepts a connection, it creates an instance of `HttpRequestHandler` and uses it to handle the request sequentially (without concurrency).
+### **Lambda Functions for Dynamic REST API:**  
+- **`get(String path, BiFunction<HttpRequest, HttpResponse, String> restService)`**:  
+  - Registers a lambda function to handle **GET** requests for a specific path.  
+  - Example:  
+    ```java
+    get("/app/hello", (req, resp) -> "Hello, world");
+    ```  
+- **`post(String path, BiFunction<HttpRequest, HttpResponse, String> restService)`**:  
+  - Registers a lambda function to handle **POST** requests for a specific path.  
+  - Example:  
+    ```java
+    post("/app/hellopost", (req, resp) -> "Post received: " + req.getQueryParam("name"));
+    ```  
+
+## 2. **HttpRequestHandler**  
+
+### **Role:**  
+Processes client requests, determines the appropriate response, and redirects requests based on the HTTP method.
+
+### **Responsibilities:**  
+- Read and parse HTTP requests.  
+- Determine whether to serve static files or process a REST request.  
+- Redirect `GET` and `POST` requests to registered REST services.  
+- Serve static files from the specified directory.  
+- Send appropriate HTTP responses, handling errors like "404 Not Found."  
+- Close the client socket after processing the request.  
+
+
+## 3. **HttpResponse**  
+
+### **Role:**  
+Handles the construction and sending of HTTP responses, including status codes, headers, and body content.
+
+### **Responsibilities:**  
+- Set and manage HTTP status codes and messages.  
+- Store and manage HTTP headers.  
+- Store the response body.  
+- Send the complete HTTP response to the client via a `PrintWriter`.  
+
+---
+
+## 4. **HttpRequest**  
+
+### **Role:**  
+Processes and extracts query parameters from an HTTP request.
+
+### **Responsibilities:**  
+- Parse query parameters from a URL-encoded string.  
+- Provide access to query parameters via the `getQueryParam` method.  
+- Decode query parameters to support special characters.  
+
 
 ### Interaction Flow
 
@@ -144,61 +186,84 @@ You need to have the following installed:
 3. **Server Shutdown**: When the server needs to stop, the `ServerSocket` is closed and the server is gracefully shut down.
 
 ## Class Diagram
-![alt text](images/class.png)
+![alt text](images/clases.png)
 
 ### Class Descriptions
 
-1. **HttpRequestHandler**
+### 1. **HttpRequest**:
+- **Responsibility**: Represents an HTTP request and handles query parameters.
+- **Methods**:
+  - **Constructor `HttpRequest(Map<String, String> queryParams)`**: Initializes the HTTP request with a map of query parameters.
+  - **Constructor `HttpRequest(String queryString)`**: Initializes the HTTP request from a query string, which is parsed by the `parseQueryString` method.
+  - **`getQueryParam(String key)`**: Retrieves the value of a query parameter, URL-decoded.
+  - **`parseQueryString(String queryString)`**: Parses the query string and converts it into a map of key-value parameters.
 
-**Responsibilities:**
-- Manages incoming HTTP requests from the server.
-- Reads the requested file or resource and sends the response back to the client.
-- Handles static files such as HTML, CSS, JS, and images.
-- Determines the content type and generates the necessary HTTP headers.
-- Responds with a 404 error if the requested file does not exist.
+---
 
-**Methods:**
-- `handlerRequest()`: Processes the HTTP request and determines the appropriate action.
-- `rediretMethod()`: Redirects the request based on the method (GET or POST).
-- `readingHtmlCssJs()`: Reads HTML, CSS, and JS files.
-- `readFileData()`: Reads the data of the requested file.
-- `requestImgHandler()`: Handles image requests and sends them to the client.
-- `fileExists()`: Checks if the requested file exists.
-- `getContentType()`: Gets the content type of a file.
-- `requestHeader()`: Generates the necessary HTTP headers for the response.
-- `notFound()`: Generates a 404 error response if the file is not found.
+### 2. **HttpRequestHandler**:
+- **Responsibility**: Handles the HTTP request from a client and responds with the appropriate results (either static or dynamic content depending on the request type).
+- **Attributes**:
+  - `Socket clientSocket`: The socket used for communication with the client.
+  - `String route`: The base path for static files.
+  - `PrintWriter out`: Used to send the response to the client.
+  - `BufferedReader in`: Reads the incoming client request.
+  - `BufferedOutputStream bodyOut`: Sends the response body data.
+- **Methods**:
+  - **Constructor `HttpRequestHandler(Socket clientSocket, String route)`**: Initializes the handler with the client socket and base route.
+  - **`handleRequest()`**: This method handles the HTTP request. It reads the request, determines the method (GET or POST), and the requested file, then delegates the response to the appropriate method (`redirectMethod`).
+  - **`redirectMethod(String method, String file)`**: Depending on the HTTP method (GET or POST), it looks for the appropriate service (stored in the `servicesGet` or `servicesPost` maps) or serves the static file.
+  - **`requestStaticHandler(String file, String contentType)`**: Serves static files if they exist, such as HTML, CSS, JS, etc.
+  - **`readFileData(String requestFile)`**: Reads data from a file.
+  - **`fileExists(String filePath)`**: Checks if a file exists on the system.
+  - **`getContentType(String requestFile)`**: Determines the content type of a file based on its extension.
+  - **`requestHeader(String contentType, int contentLength, String code)`**: Generates the HTTP response header.
+  - **`notFound()`**: Returns an HTML response indicating that the file was not found (404).
 
-2. **HttpServer**
+---
 
-**Responsibilities:**
-- Acts as the server that listens for incoming requests on a specific port.
-- Starts and stops the server, managing client connections.
+### 3. **HttpResponse**:
+- **Responsibility**: Represents an HTTP response sent to the client.
+- **Attributes**:
+  - `int statusCode`: The HTTP status code of the response (e.g., 200 for OK).
+  - `String statusMessage`: The message associated with the status code (e.g., "OK").
+  - `String body`: The body of the response (e.g., HTML or JSON content).
+  - `Map<String, String> headers`: A map of HTTP headers.
+- **Methods**:
+  - **`getStatusCode()` and `setStatusCode(int statusCode)`**: Get or set the status code.
+  - **`getStatusMessage()` and `setStatusMessage(String statusMessage)`**: Get or set the status message.
+  - **`getBody()` and `setBody(String body)`**: Get or set the body of the response.
+  - **`addHeader(String key, String value)`**: Add a header to the response.
+  - **`send(PrintWriter out)`**: Sends the HTTP response to the client, including headers and body.
 
-**Methods:**
-- `startServer()`: Starts the server and begins accepting connections.
-- `stopServer()`: Stops the server and closes open connections.
-- `main()`: Main method to run the server.
+---
 
-3. **RestService**
+### 4. **HttpServer**:
+- **Responsibility**: The HTTP server that accepts client connections, handles requests, and responds with either static or dynamic content.
+- **Attributes**:
+  - `int PORT`: The port on which the server listens for requests.
+  - `boolean running`: Indicates whether the server is running.
+  - `ServerSocket serverSocket`: The server socket that listens for client requests.
+  - `String route`: The base path for static files.
+  - `HashMap<String, BiFunction<HttpRequest, HttpResponse, String>> servicesGet`: A map that associates routes with `GET` services.
+  - `HashMap<String, BiFunction<HttpRequest, HttpResponse, String>> servicesPost`: A map that associates routes with `POST` services.
+- **Methods**:
+  - **`main(String[] args)`**: The entry point that creates an instance of `HttpServer` and starts the server.
+  - **`startServer()`**: Starts the server and accepts incoming connections, handling them with `HttpRequestHandler`.
+  - **`get(String path, BiFunction<HttpRequest, HttpResponse, String> restService)`**: Registers a service for `GET` requests.
+  - **`post(String path, BiFunction<HttpRequest, HttpResponse, String> restService)`**: Registers a service for `POST` requests.
+  - **`staticFiles(String path)`**: Sets the base path for static files.
+  - **`stopServer()`**: Stops the server.
 
-**Responsibilities:**
-- Provides responses to REST requests, specifically for GET and POST methods.
+---
 
-**Methods:**
-- `responseGET()`: Generates a response for GET requests.
-- `responsePOST()`: Generates a response for POST requests.
+### **Relationships between the classes**:
+- **`HttpServer`** manages client connections.
+- **`HttpRequestHandler`** handles the logic for each request and delegates to the services registered in **`HttpServer`** or serves static files.
+- **`HttpRequest`** represents the details of the HTTP request, such as query parameters.
+- **`HttpResponse`** generates the HTTP response that is sent to the client.
 
-### Relationships Between Classes
 
-- **HttpRequestHandler and RestService**: The `HttpRequestHandler` class uses `RestService` to handle REST requests. Specifically, it can invoke methods of `RestService` to process GET and POST requests.
-  
-- **HttpRequestHandler and ServerSocket**: `HttpRequestHandler` creates and manages the `ServerSocket` that receives client connections.
-  
-- **HttpServer and HttpRequestHandler**: `HttpServer` creates instances of `HttpRequestHandler` to delegate the management of incoming requests.
-  
-- **HttpServer and ServerSocket**: `HttpServer` uses the `ServerSocket` to accept client connections.
-
-## Reporte de pruebas- Servidor web no concurrente
+## TEST REPORT - WEB FRAMEWORK FOR REST SERVICES AND STATIC FILE MANAGEMENT
 
 ### Autor
 
@@ -206,96 +271,41 @@ Name: Maria Valentina Torres Monsalve
 
 ### Date
 
-Date: 30/01/2024
+Date: 06/02/2025
 
 ### Test conducted
 
 
-Test: `shouldLoadStaticFileHtml`
-- **Description**: Verifies that the server is capable of serving static HTML files.
-- **Objective**: Ensure that the server correctly serves files such as `index.html` from the designated directory.
-- **Test Scenario**: A client requests the `index.html` file from the server.
-- **Expected Behavior**: The server should respond with `HTTP/1.1 200 OK` and the correct content of the `index.html` file.
-- **Verification**: Validation that the file is served correctly, ensuring the server handles static file requests.
+1. **Test:** `shouldLoadStaticFileHtml`: This test checks that the static file `index.html` loads correctly from the server. A GET request is made to the file, and a response with status code 200 is expected, indicating that the file is available and served correctly.
 
-Test: `notShouldLoadStaticFileHtml`
-- **Description**: Verifies that the server responds appropriately when the requested file is not found.
-- **Objective**: Ensure that the server responds with a `404 Not Found` status when a non-existing file is requested.
-- **Test Scenario**: A client requests a non-existing file, such as `web.html`.
-- **Expected Behavior**: The server should respond with `HTTP/1.1 404 Not Found`.
-- **Verification**: Confirmation that the server correctly handles not found files.
+2. **Test:** `notShouldLoadStaticFileHtml`: In this test, it is verified that the server cannot load a non-existent static file, `web.html`. A GET request is made, and a status code 404 is expected, indicating that the file was not found.
 
-Test: `shouldLoadStaticFileCss`
-- **Description**: Verifies that the server is capable of serving static CSS files.
-- **Objective**: Ensure that the server correctly serves files like `style.css`.
-- **Test Scenario**: A client requests the `style.css` file from the server.
-- **Expected Behavior**: The server should respond with `HTTP/1.1 200 OK` and the correct content of the CSS file.
-- **Verification**: Validation that the CSS file is served correctly.
+3. **Test:**`shouldLoadStaticFileCss`: This test validates that the CSS file `style.css` is served correctly when requested via GET. A response with status code 200 is expected, indicating that the file is available and served correctly.
 
-Test: `notShouldLoadStaticFileCss`
-- **Description**: Verifies that the server responds appropriately when the requested CSS file is not found.
-- **Objective**: Ensure that the server responds with a `404 Not Found` status when the file does not exist.
-- **Test Scenario**: A client requests a non-existing CSS file, such as `styles.css`.
-- **Expected Behavior**: The server should respond with `HTTP/1.1 404 Not Found`.
-- **Verification**: Confirmation that the server correctly handles not found CSS files.
+4. **Test:** `notShouldLoadStaticFileCss`: This test ensures that the server cannot serve the non-existent CSS file `styles.css`. A GET request is made, and a status code 404 is expected, meaning the file was not found.
 
-Test: `shouldLoadStaticFileJs`
-- **Description**: Verifies that the server is capable of serving static JavaScript files.
-- **Objective**: Ensure that the server correctly serves files like `script.js`.
-- **Test Scenario**: A client requests the `script.js` file from the server.
-- **Expected Behavior**: The server should respond with `HTTP/1.1 200 OK` and the correct content of the JavaScript file.
-- **Verification**: Validation that the JavaScript file is served correctly.
+5. **Test:** `shouldLoadStaticFileJs`: It is verified that the JavaScript file `script.js` is correctly loaded from the server. The expected response is a status code 200, indicating that the file exists and was served correctly.
 
-Test: `notShouldLoadStaticFileJs`
-- **Description**: Verifies that the server responds appropriately when the requested JavaScript file is not found.
-- **Objective**: Ensure that the server responds with a `404 Not Found` status when the JavaScript file does not exist.
-- **Test Scenario**: A client requests a non-existing JavaScript file, such as `prueba.js`.
-- **Expected Behavior**: The server should respond with `HTTP/1.1 404 Not Found`.
-- **Verification**: Confirmation that the server correctly handles not found JavaScript files.
+6. **Test:** `notShouldLoadStaticFileJs`: In this test, it is validated that the server does not serve the non-existent JavaScript file `prueba.js`. A status code 404 is expected, indicating that the file was not found.
 
-Test: `shouldLoadStaticImagePNG`
-- **Description**: Verifies that the server is capable of serving PNG images.
-- **Objective**: Ensure that the server correctly serves images like `imagen2.png`.
-- **Test Scenario**: A client requests the image `imagen2.png` from the server.
-- **Expected Behavior**: The server should respond with `HTTP/1.1 200 OK` and the correct content of the PNG image.
-- **Verification**: Validation that the PNG image is served correctly.
+7. **Test:** `shouldLoadStaticImagePNG`: This test ensures that the image `imagen1.png` is correctly loaded from the server. The expected response is a status code 200, indicating that the image is available and served correctly.
 
-Test: `shouldLoadStaticImageJPG`
-- **Description**: Verifies that the server is capable of serving JPG images.
-- **Objective**: Ensure that the server correctly serves images like `imagen8.jpg`.
-- **Test Scenario**: A client requests the image `imagen8.jpg` from the server.
-- **Expected Behavior**: The server should respond with `HTTP/1.1 200 OK` and the correct content of the JPG image.
-- **Verification**: Validation that the JPG image is served correctly.
+8. **Test:** `shouldLoadStaticImageJPG`: It is verified that the image file `imagen2.jpg` loads correctly when a GET request is made. The expected response is a status code 200, confirming that the file exists and was served properly.
 
-Test: `notShouldLoadStaticImagePNG`
-- **Description**: Verifies that the server responds appropriately when the requested PNG image is not found.
-- **Objective**: Ensure that the server responds with a `404 Not Found` status when the requested image does not exist.
-- **Test Scenario**: A client requests a non-existing PNG image, such as `imagen8.png`.
-- **Expected Behavior**: The server should respond with `HTTP/1.1 404 Not Found`.
-- **Verification**: Confirmation that the server correctly handles not found PNG images.
+9. **Test:** `notShouldLoadStaticImagePNG`: This test validates that the server cannot serve the non-existent PNG image file `imagen8.png`. A status code 404 is expected, meaning the file was not found.
 
-Test: `notShouldLoadStaticImageJPG`
-- **Description**: Verifies that the server responds appropriately when the requested JPG image is not found.
-- **Objective**: Ensure that the server responds with a `404 Not Found` status when the requested image does not exist.
-- **Test Scenario**: A client requests a non-existing JPG image, such as `imagen2.jpg`.
-- **Expected Behavior**: The server should respond with `HTTP/1.1 404 Not Found`.
-- **Verification**: Confirmation that the server correctly handles not found JPG images.
+10. **Test:** `notShouldLoadStaticImageJPG`: Here, it is ensured that the server does not serve the non-existent JPG image file `imagen5.jpg`. The expected response is a status code 404, indicating that the file was not found.
 
-Test: `shouldLoadRestGet`
-- **Description**: Verifies that the server is capable of correctly handling REST GET requests.
-- **Objective**: Ensure that the server correctly processes a REST GET request with parameters.
-- **Test Scenario**: A client sends a GET request with the parameter `name=maria`.
-- **Expected Behavior**: The server should respond with `HTTP/1.1 200 OK`.
-- **Verification**: Validation that the GET request is processed correctly.
+11. **Test:** `shouldLoadRestGet`: This test checks that the REST service `app/helloget` correctly handles a GET request with the parameter `name=maria`. A response with status code 200 and the appropriate message in the body, such as `{ "response": "Get received: maria" }`, is expected.
 
-Test: `shouldLoadRestPost`
-- **Description**: Verifies that the server is capable of correctly handling REST POST requests.
-- **Objective**: Ensure that the server correctly processes a REST POST request with parameters.
-- **Test Scenario**: A client sends a POST request with the parameter `name=maria`.
-- **Expected Behavior**: The server should respond with `HTTP/1.1 201 Created`.
-- **Verification**: Validation that the POST request is processed correctly.
+12. **Test:** `shouldLoadRestHello`: It is validated that the REST service `app/hello` responds correctly to a GET request. A response with status code 200 and the message `{ "response": "Hello, world" }` is expected, indicating the server is functioning properly.
 
-![test](images/test.png)
+13. **Test:** `shouldLoadRestPost`: In this test, it is verified that the REST service `app/hellopost` correctly handles a POST request with the parameter `name=valentina`. The expected response is status code 201 along with the message `{ "response": "Post received: valentina" }`.
+
+14. **Test:** `notShouldLoadRestPost`: This test ensures that the server returns a status code 404 when an incorrect POST request is made to the `app/hello/x` service, which is not supported. The response should include the message `{ "response": "Method not supported" }`.
+
+
+![test](images/testMicroFrameWork.png)
 
 ## Built With
 

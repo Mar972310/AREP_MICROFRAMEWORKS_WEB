@@ -64,15 +64,29 @@ public class HttpRequestHandler {
 
         if(fileRequest.startsWith("/app")){
             BiFunction<HttpRequest,HttpResponse,String> service = null;
+            String code = "404";
+            String outputLine = " ";
             if(method.equals("GET")){
                 service = HttpServer.servicesGet.get(fileRequest);
+                code = "200";
             }else if(method.equals("POST")){
                 service = HttpServer.servicesPost.get(fileRequest);
-            }else if (service.equals(null)){
-                notFound();
+                code = "201";
             }
-            String outputLine = service.apply(req,res);
-            out.println(outputLine); 
+
+            if(service != null){
+                outputLine = service.apply(req, res);
+                outputLine = "{\"response\":\"" + outputLine + "\"}";                
+            }else{
+                outputLine = "{\"response\":Method not supported}"; ;
+                code = "404";
+            }
+
+            String responseHeader = requestHeader("text/json", outputLine.length(), code);
+            out.println(responseHeader);  
+            out.flush();
+            out.println(outputLine);  
+            out.flush();
         }else{
             requestStaticHandler(ruta + file, contentType); 
         }

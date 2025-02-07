@@ -20,7 +20,7 @@ public class HttpServer {
     static HashMap<String, BiFunction<HttpRequest, HttpResponse, String>> servicesGet = new HashMap<>();
     static HashMap<String, BiFunction<HttpRequest, HttpResponse, String>> servicesPost = new HashMap<>();
 
-    public static void start(String[] args) throws IOException, URISyntaxException {
+    public static void main(String[] args) throws IOException, URISyntaxException {
         HttpServer server = new HttpServer();
         System.out.println(ruta);
         server.startServer();
@@ -62,6 +62,14 @@ public class HttpServer {
         servicesPost.put(path, restService);
     }
 
+    public HashMap<String, BiFunction<HttpRequest, HttpResponse, String>> getServicesGet(){
+        return servicesGet;
+    }
+
+    public HashMap<String, BiFunction<HttpRequest, HttpResponse, String>> getServicesPost(){
+        return servicesPost;
+    }
+    
     public void stopServer() {
         running = false;
         if (serverSocket != null && !serverSocket.isClosed()) {

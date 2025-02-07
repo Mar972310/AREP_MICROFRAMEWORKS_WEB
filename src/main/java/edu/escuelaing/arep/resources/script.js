@@ -4,7 +4,7 @@ function loadGetMsg() {
     xhttp.onload = function() {
         document.getElementById("getResult").innerHTML = this.responseText;
     }
-    xhttp.open("GET", "/app?name=" + nameVar);
+    xhttp.open("GET", "/app/pi");
     xhttp.send();
 }
 
